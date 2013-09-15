@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en" ng-app="app">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="css/bootstrap.min.css">
+		<link rel="stylesheet" href="css/custom.css">
+	</head>
+	<body>
+		<div id="wrap">
+			<div>
+				<header class="navbar navbar-default navbar-fixed-top" role="navigation">
+					<div class="container">
+						<div class="navbar-header">
+							<a class="navbar-brand" href="#/">PPD</a>
+							<p class="navbar-text"><a href="#/key">Key</a></p>
+						</div>
+					</div>
+				</header>
+				<div class="container">
+					<div class="row">
+						<div ng-view></div>
+					</div>
+				</div>
+			</div>
+			<div id="push"></div>
+		</div>
+		<div id="footer">
+			<nav class="navbar navbar-default navbar-bottom" ng-controller="DropboxController">
+				<p>
+					Dropbox: <strong>{{ account_info.email }}</strong>
+					<button ng-show="dropbox.isAuthenticated()" class="btn btn-xs btn-info" ng-click="logout()">Logout</button>
+				</p>
+			</div>
+		</div>
+<script type="text/javascript" src="js/openpgp.min.js"></script>
+<script type="text/javascript" src="js/angular.js"></script>
+<script type="text/javascript" src="js/dropbox.min.js"></script>
+<script type="text/javascript" src="js/moment.min.js"></script>
+<script type="text/javascript" src="js/underscore.min.js"></script>
+<script type="text/javascript" src="js/app.js"></script>
+<script type="text/ng-template" id="key.html">
+<div class="col-md-8 col-md-offset-2">
+	<form ng-submit="save()" name="keyForm">
+		<div class="form-group" ng-class="{'has-error': keyForm.key.$error.key}">
+			<label class="control-label" for="id_key">PGP Private Key</label>
+			<textarea pgp-key id="id_key" class="form-control" ng-model="key" rows="15" name="key"></textarea>
+			<span class="help-block" ng-show="keyForm.key.$error.key">Could not parse PGP key.</span>
+		</div>
+		<p>
+			<input ng-show="!saved && changed && !keyForm.key.$error.key" class="btn btn-primary" type="submit" value="Save private key">
+			<button ng-show="saved && !keyForm.key.$error.key" class="btn">Saved!</button>
+		</p>
+		<p class="help-block">You can export your private key using the following command: <code>gpg --armor --export-secret-keys your_name@domain.com</code>
+		</p>
+	</form>
+</div>
+</script>
+<script type="text/ng-template" id="decode.html">
+<div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2" class="row" ng-hide="decryptedDB">
+	<form ng-submit="decrypt()" name="passphraseForm">
+		<div class="form-group" ng-class="{'has-error': invalid}">
+			<div class="input-group">
+				<input class="form-control" type="password" ng-model="passphrase" id="id_passphrase" placeholder="Passphrase">
+				<span class="input-group-btn">
+					<input type="submit" class="btn btn-primary" value="Decrypt">
+				</span>
+			</div>
+			<span class="help-block" ng-show="invalid">Invalid passphrase.</span>
+		</div>
+	</form>
+
+	<p><br>Last password DB sync: <strong>{{ ago }}</strong>. <button class="btn btn-info" ng-click="sync()">Sync now</button></p>
+</div>
+<div ng-show="decryptedDB">
+	<div class="col-md-3 col-sm-4" ng-show="decrypted_list.length">
+		<div class="btn-group btn-group-justified lowmargin">
+			<a class="btn btn-warning" ng-click="lock()">Lock</a>
+			<a class="btn btn-info" ng-click="add()">+ Add</a>
+		</div>
+		<p>
+			<input class="form-control" type="search" ng-model="search" placeholder="Filter…" autofocus>
+		</p>
+		<div class="list-group">
+			<a ng-repeat="item in decrypted_list | filter:{name:search}" ng-class="{active: item.name == selected_item.name}" class="list-group-item" ng-click="select(item)">{{ item.name }}</a>
+		</div>
+	</div>
+	<div class="col-md-9 col-sm-8" ng-show="selected_item">
+		<form name="editForm" class="form-inline">
+			<div class="panel panel-info">
+				<div class="panel-heading">
+					<h3 class="panel-title" ng-hide="editing">
+						{{ selected_item.name }}
+						<button type="button" class="close pull-right" ng-click="deselect()" aria-hidden="true">&times;</button>
+					</h3>
+					<input ng-show="editing" class="form-control" type="text" ng-model="selected_item.name" placeholder="Name">
+				</div>
+				<div class="panel-body" ng-hide="editing">
+					<p ng-repeat="element in selected_item.list">
+						<strong>{{ element.name }}</strong> {{ element.value }}
+					</p>
+				</div>
+				<div class="panel-body" ng-show="editing">
+					<div ng-repeat="element in selected_item.list">
+						<div class="input-group">
+							<span class="input-group-addon">Key</span>
+							<input class="form-control" type="text" ng-model="element.name" placeholder="Key">
+						</div>
+						<div class="input-group">
+							<span class="input-group-addon">Value</span>
+							<input class="form-control" type="text" ng-model="element.value" placeholder="Value">
+						</div>
+					</div>
+					<p><button class="btn btn-info btn-sm" ng-click="add_pair()">Add key/value pair</button></p>
+					<p class="help-block">Empty key/value pairs are ignored. To delete existing pairs, empty them.</p>
+				</div>
+				<div class="panel-footer">
+					<button ng-hide="editing" class="btn btn-info btn-xs" ng-click="edit()">Edit</button>
+					<button ng-hide="editing" class="btn btn-danger btn-xs" ng-click="delete()">Delete</button>
+					<input type="submit" ng-show="editing" class="btn btn-success btn-sm" ng-class="{'btn-xs': !adding}" ng-click="save()" value="Save">
+					<button ng-show="editing" class="btn btn-warning btn-xs" ng-click="cancel()">Cancel</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+<div ng-show="decrypted_list.length == 0 && !adding" class="col-md-6 col-md-offset-3 col-xs-12">
+	<p class="text-center">
+		Empty password database.
+	</p>
+	<p class="text-center">
+		<button class="btn btn-info" ng-click="add()">Add a new item</button>
+	</p>
+</div>
+</script>
+	</body>
+</html>

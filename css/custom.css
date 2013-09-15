@@ -1,0 +1,51 @@
+body {
+	padding-top: 70px;
+}
+
+/* Navbar without toggleable menu */
+.navbar-text a {
+	color: #777;
+}
+.navbar-text a:hover {
+	text-decoration: none;
+}
+
+.lowmargin {
+	margin-bottom: 10px;
+}
+
+.panel-body .input-group {
+	margin-bottom: 10px;
+}
+
+.panel-body strong {
+	margin-right: 1rem;
+}
+
+/* Sticky footer */
+html, body {
+	height: 100%;
+}
+
+#wrap {
+	min-height: 100%;
+	height: auto !important;
+	height: 100%;
+	margin: 0 auto -50px;
+}
+
+#push, #footer {
+	height: 50px;
+}
+
+/* Footer */
+#footer nav {
+	border-bottom: none;
+	border-left: none;
+	border-right: none;
+	border-radius: 0;
+	text-align: center;
+}
+#footer p {
+	margin-top: 12.5px;
+}
