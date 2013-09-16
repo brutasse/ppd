@@ -3,15 +3,15 @@ PPD is a simple password manager.
 Passwords are put in a PGP-encrypted file that gets backed up in your Dropbox
 account.
 
-You can then access your passwords with utility scripts on your desktop
-computer or in a web browser.
+You can then access your passwords with a web browser from any device.
 
 **Q: Why don't you just use 1Password / LastPass / $PASSWORD_MANAGER?**
 
 **A**:
 
-* I can access my passwords using any device that has a web browser. And the
-  scripts work fine on Linux, where the state of password managers is terrible.
+* I can access my passwords using any device that has a web browser. And
+  everything work fine on Linux, where the state of password managers is
+  terrible.
 
 * This is Free, Open-Source software. And it's simple: the code does almost
   nothing, only encrypting/decrypting stuff and reading/writing data with the
