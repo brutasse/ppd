@@ -70,7 +70,7 @@
 		</div>
 	</form>
 
-	<p><br>Last password DB sync: <strong>{{ ago }}</strong>. <button class="btn btn-info" ng-click="sync()">Sync now</button></p>
+	<p class="text-center"><br>Last password DB sync: <strong>{{ ago }}</strong>. <br><br><button class="btn btn-info" ng-click="sync()">Sync now</button></p>
 </div>
 <div ng-show="decryptedDB">
 	<div class="col-md-3 col-sm-4" ng-show="decrypted_list.length">
@@ -79,7 +79,7 @@
 			<a class="btn btn-info" ng-click="add()">+ Add</a>
 		</div>
 		<p>
-			<input class="form-control" type="search" ng-model="search" placeholder="Filter…" autofocus>
+			<input class="form-control" type="search" ng-model="search" placeholder="Filter…" autofocus autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
 		</p>
 		<div class="list-group">
 			<a ng-repeat="item in decrypted_list | filter:{name:search}" ng-class="{active: item.name == selected_item.name}" class="list-group-item" ng-click="select(item)">{{ item.name }}</a>
@@ -108,7 +108,7 @@
 						</div>
 						<div class="input-group">
 							<span class="input-group-addon">Value</span>
-							<input class="form-control" type="text" ng-model="element.value" placeholder="Value">
+							<input class="form-control" type="text" ng-model="element.value" placeholder="Value" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
 						</div>
 					</div>
 					<p><button class="btn btn-info btn-sm" ng-click="add_pair()">Add key/value pair</button></p>
