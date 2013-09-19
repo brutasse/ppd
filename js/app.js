@@ -22,31 +22,7 @@ app.directive('pgpKey', function () {
 
 app.factory('dropbox', ['$q', '$http', function(q, http) {
     var ready = q.defer();
-    var client;
     var url = window.location.origin + window.location.pathname;
-
-    http.get(url + 'app-key').success(function(data) {
-        client = new Dropbox.Client({key: data.trim()});
-        var driver = client.authDriver(new Dropbox.AuthDriver.Redirect({
-            receiverUrl: url
-        }));
-        ready.resolve(true);
-        client.authenticate(function() {});
-    });
-
-    var auth = q.defer();
-    var isAuthenticated = function() {
-        ready.promise.then(function() {
-            auth.resolve(client.isAuthenticated());
-        });
-        return auth.promise;
-    };
-
-    var authenticate = function() {
-        if (!isAuthenticated()) {
-            client.authenticate(function(error, client) {});
-        }
-    };
 
     var db_name = 'pwdb.json';
     var storage_name = 'jspw:db'
@@ -54,17 +30,15 @@ app.factory('dropbox', ['$q', '$http', function(q, http) {
 
     var syncPasswordDB = function(scope) {
         var db = q.defer();
-        ready.promise.then(function() {
-            client.readFile(db_name, function(error, file) {
-                if (error) {
-                    db.reject(error);
-                } else {
-                    db.resolve(file);
-                    window.localStorage[storage_name] = file;
-                    window.localStorage[last_sync] = moment().toString();
-                }
-                scope.$apply();
-            });
+        window.dropboxClient.readFile(db_name, function(error, file) {
+            if (error) {
+                db.reject(error);
+            } else {
+                db.resolve(file);
+                window.localStorage[storage_name] = file;
+                window.localStorage[last_sync] = moment().toString();
+            }
+            scope.$apply();
         });
         return db.promise;
     };
@@ -79,7 +53,7 @@ app.factory('dropbox', ['$q', '$http', function(q, http) {
 
     var putPasswordDB = function(scope, new_db) {
         var db = q.defer();
-        client.writeFile(db_name, new_db, function(error, status) {
+        window.dropboxClient.writeFile(db_name, new_db, function(error, status) {
             if (error) {
                 db.reject(error);
             } else {
@@ -98,28 +72,23 @@ app.factory('dropbox', ['$q', '$http', function(q, http) {
             account_info.resolve(resolved_account);
             return account_info.promise;
         }
-        ready.promise.then(function() {
-            client.getAccountInfo(function(error, info) {
-                if (error) {
-                    account_info.reject(error);
-                } else {
-                    resolved_account = info;
-                    account_info.resolve(info);
-                }
-                scope.$apply();
-            });
+        window.dropboxClient.getAccountInfo(function(error, info) {
+            if (error) {
+                account_info.reject(error);
+            } else {
+                resolved_account = info;
+                account_info.resolve(info);
+            }
+            scope.$apply();
         });
         return account_info.promise;
     };
 
     var dropbox = {
-        isAuthenticated: isAuthenticated,
-        authenticate: authenticate,
         getAccountInfo: getAccountInfo,
         syncPasswordDB: syncPasswordDB,
         putPasswordDB: putPasswordDB,
-        lastSync: lastSync,
-        ready: ready.promise
+        lastSync: lastSync
     };
     return dropbox;
 }]);
@@ -171,6 +140,10 @@ var KeyController = ['$scope', '$location', 'pkey', function(scope, location, pk
 }];
 
 var DecodeController = ['$scope', '$location', 'pkey', 'dropbox', '$timeout', function(scope, location, pkey, dropbox, timeout) {
+    if (!pkey.key()) {
+        location.path('/key');
+    };
+
     var getPublicKey = function() {
         var key = openpgp.read_privateKey(pkey.key())[0]
         return openpgp.read_publicKey(key.extractPublicKey());
@@ -338,3 +311,5 @@ app.config(['$routeProvider', function(routeProvider) {
             controller: 'DecodeController'
         })
 }]);
+
+angular.bootstrap(document, ['app']);
