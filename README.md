@@ -37,4 +37,6 @@ Note the app key. The secret isn't useful for client-side apps.
 Set the URL where you'll deploy it as OAuth redirect URI. Example:
 `https://ppd.example.com/` or `https://example.com/ppd/`.
 
-Then just serve the root of this repository as a static website.
+Then just serve the root of this repository as a static website, with an
+additional file named `app-key` and containing the Dropbox OAuth key in the
+same directory as `index.html`.
