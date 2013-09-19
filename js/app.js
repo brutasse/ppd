@@ -22,17 +22,29 @@ app.directive('pgpKey', function () {
 
 app.directive('timeAgo', ['$timeout', function(timeout) {
     return {
-        scope: {'timeAgo': '='},
+        restrict: 'AC',
+        scope: {'datetime': '@'},
         link: function(scope, element, attrs) {
-            if (!scope.timeAgo) {
-                element.text('never');
-            } else {
-                var update = function() {
-                    element.text(moment(scope.timeAgo).fromNow());
-                    timeout(update, 60000);
+            var tm;
+
+            scope.$watch('datetime', function(datetime) {
+                timeout.cancel(tm);
+
+                if (!datetime || !moment(datetime)) {
+                    element.text('never');
                 }
-                update()
-            }
+
+                var update = function() {
+                    element.text(moment(datetime).fromNow());
+                    tm = timeout(update, 60000);
+                };
+
+                element.bind('$destroy', function() {
+                    timeout.cancel(tm);
+                });
+
+                update();
+            });
         }
     };
 }]);

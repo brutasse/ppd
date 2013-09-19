@@ -65,7 +65,7 @@
 		</div>
 	</form>
 
-	<p class="text-center"><br>Last password DB sync: <strong time-ago="ago"></strong>. <br><br><button class="btn btn-info" ng-click="sync()">Sync now</button>
+	<p class="text-center"><br>Last password DB sync: <strong time-ago datetime="{{ ago }}"></strong>. <br><br><button class="btn btn-info" ng-click="sync()">Sync now</button>
 	<a class="btn btn-info" href="#/key">Edit key</a></p>
 </div>
 <div ng-show="decryptedDB">
