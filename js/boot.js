@@ -31,7 +31,7 @@
         });
     };
 
-    if (document.readyState === 'complete') {
+    if (document.readyState === 'complete') {
         setTimeout(boot);
     } else {
         document.addEventListener("DOMContentLoaded", boot, false);
