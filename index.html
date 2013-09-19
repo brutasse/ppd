@@ -13,7 +13,6 @@
 					<div class="container">
 						<div class="navbar-header">
 							<a class="navbar-brand" href="#/">PPD</a>
-							<p class="navbar-text"><a href="#/key">Key</a></p>
 						</div>
 					</div>
 				</header>
@@ -66,7 +65,8 @@
 		</div>
 	</form>
 
-	<p class="text-center"><br>Last password DB sync: <strong>{{ ago }}</strong>. <br><br><button class="btn btn-info" ng-click="sync()">Sync now</button></p>
+	<p class="text-center"><br>Last password DB sync: <strong>{{ ago }}</strong>. <br><br><button class="btn btn-info" ng-click="sync()">Sync now</button>
+	<a class="btn btn-info" href="#/key">Edit key</a></p>
 </div>
 <div ng-show="decryptedDB">
 	<div class="col-md-3 col-sm-4" ng-show="decrypted_list.length">

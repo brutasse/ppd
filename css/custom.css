@@ -2,14 +2,6 @@ body {
 	padding-top: 70px;
 }
 
-/* Navbar without toggleable menu */
-.navbar-text a {
-	color: #777;
-}
-.navbar-text a:hover {
-	text-decoration: none;
-}
-
 .lowmargin {
 	margin-bottom: 10px;
 }
