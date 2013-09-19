@@ -8,8 +8,6 @@
             script.setAttribute('src', 'js/' + scripts.shift() + '.js');
             script.onload = load_scripts;
             document.body.appendChild(script);
-        } else {
-            angular.bootstrap(document, ['app']);
         }
     };
 
