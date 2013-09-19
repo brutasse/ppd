@@ -20,6 +20,23 @@ app.directive('pgpKey', function () {
     };
 });
 
+app.directive('timeAgo', ['$timeout', function(timeout) {
+    return {
+        scope: {'timeAgo': '='},
+        link: function(scope, element, attrs) {
+            if (!scope.timeAgo) {
+                element.text('never');
+            } else {
+                var update = function() {
+                    element.text(moment(scope.timeAgo).fromNow());
+                    timeout(update, 60000);
+                }
+                update()
+            }
+        }
+    };
+}]);
+
 app.factory('dropbox', ['$q', '$http', function(q, http) {
     var ready = q.defer();
     var url = window.location.origin + window.location.pathname;
@@ -44,11 +61,7 @@ app.factory('dropbox', ['$q', '$http', function(q, http) {
     };
 
     var lastSync = function() {
-        var sync = window.localStorage[last_sync];
-        if (sync) {
-            return moment(sync).fromNow();
-        }
-        return 'never';
+        return window.localStorage[last_sync];
     };
 
     var putPasswordDB = function(scope, new_db) {
