@@ -151,7 +151,7 @@ var KeyController = ['$scope', '$location', 'pkey', function(scope, location, pk
     scope.saved = false;
     scope.changed = false;
 
-    scope.$watch('key', function(oldVal, newVal) {
+    scope.$watch('key', function(newVal, oldVal) {
         if (oldVal != newVal) {
             scope.saved = false;
             scope.changed = true;
