@@ -174,21 +174,31 @@ var DecodeController = ['$scope', '$location', 'pkey', 'dropbox', '$timeout', fu
         return openpgp.read_publicKey(key.extractPublicKey());
     };
 
-    var encrypt = function(data) {
+    var encrypt_json = function(data) {
         return openpgp.write_encrypted_message(getPublicKey(), JSON.stringify(data));
+    };
+
+    var encrypt = function(data) {
+        var keys = _.keys(data).sort();
+        var values = [];
+        _.each(keys, function(key) {
+            values.push(encrypt_json(data[key]));
+        });
+        keys = encrypt_json(keys);
+        return JSON.stringify({keys: keys, values: values});
     };
 
     scope.ago = dropbox.lastSync();
 
     scope.sync = function() {
         dropbox.syncPasswordDB(scope).then(function(data) {
-            scope.encryptedDB = data;
+            scope.encryptedDB = JSON.parse(data);
             scope.ago = dropbox.lastSync();
         }, function(error) {
             if (error.status === 404) {
                 var empty = encrypt({});
                 dropbox.putPasswordDB(scope, empty).then(function() {
-                    scope.encryptedDB = empty;
+                    scope.encryptedDB = JSON.parse(empty);
                 })
             }
         });
@@ -237,17 +247,29 @@ var DecodeController = ['$scope', '$location', 'pkey', 'dropbox', '$timeout', fu
         if (!scope.passphrase) {
             return;
         }
-        var private_key = openpgp.read_privateKey(pkey.key())[0];
-        scope.invalid = !private_key.decryptSecretMPIs(scope.passphrase);
+        scope.private_key = openpgp.read_privateKey(pkey.key())[0];
+        scope.invalid = !scope.private_key.decryptSecretMPIs(scope.passphrase);
         if (scope.invalid) {
             return;
         }
-        var msg = openpgp.read_message(scope.encryptedDB)[0];
-        var sess_key = msg.sessionKeys[0];
-        var keymat = {key: private_key, keymaterial: private_key.subKeys[0]};
-        keymat.keymaterial.decryptSecretMPIs(scope.passphrase);
-        scope.decryptedDB = JSON.parse(msg.decrypt(keymat, sess_key));
+        var keys = scope.decrypt_json(scope.encryptedDB.keys);
+        var db = {};
+        _.each(keys, function(key, index) {
+            db[key] = scope.encryptedDB.values[index];
+        });
+        scope.decryptedDB = db;
         update_list();
+    };
+
+    scope.decrypt_json = function(data) {
+        var msg = openpgp.read_message(data)[0];
+        var sess_key = msg.sessionKeys[0];
+        var keymat = {
+            key: scope.private_key,
+            keymaterial: scope.private_key.subKeys[0]
+        };
+        keymat.keymaterial.decryptSecretMPIs(scope.passphrase);
+        return JSON.parse(msg.decrypt(keymat, sess_key));
     };
 
     scope.lock = function() {
@@ -258,6 +280,9 @@ var DecodeController = ['$scope', '$location', 'pkey', 'dropbox', '$timeout', fu
 
     scope.select = function(item) {
         quit_edition();
+        if (typeof item.data === 'string') {
+            item.data = scope.decrypt_json(item.data);
+        }
         scope.selected_item = item;
         update_selected_list();
     };
@@ -310,7 +335,7 @@ var DecodeController = ['$scope', '$location', 'pkey', 'dropbox', '$timeout', fu
 
         var enc = encrypt(scope.decryptedDB);
         dropbox.putPasswordDB(scope, enc).then(function() {
-            scope.encryptedDB = enc;
+            scope.encryptedDB = JSON.parse(enc);
         })
     };
 
